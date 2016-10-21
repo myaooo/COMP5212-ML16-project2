@@ -1,3 +1,5 @@
 .DS_Store
 /caltech
 *.pdf
+/code/data
+/code/__pycache__

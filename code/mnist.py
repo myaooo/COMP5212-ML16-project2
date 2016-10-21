@@ -99,17 +99,17 @@ def extract_labels(filename, num_images):
   return labels
 
 
-def fake_data(num_images):
-  """Generate a fake dataset that matches the dimensions of MNIST."""
-  data = numpy.ndarray(
-      shape=(num_images, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS),
-      dtype=numpy.float32)
-  labels = numpy.zeros(shape=(num_images,), dtype=numpy.int64)
-  for image in xrange(num_images):
-    label = image % 2
-    data[image, :, :, 0] = label - 0.5
-    labels[image] = label
-  return data, labels
+# def fake_data(num_images):
+#   """Generate a fake dataset that matches the dimensions of MNIST."""
+#   data = numpy.ndarray(
+#       shape=(num_images, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS),
+#       dtype=numpy.float32)
+#   labels = numpy.zeros(shape=(num_images,), dtype=numpy.int64)
+#   for image in xrange(num_images):
+#     label = image % 2
+#     data[image, :, :, 0] = label - 0.5
+#     labels[image] = label
+#   return data, labels
 
 
 def error_rate(predictions, labels):
@@ -121,31 +121,32 @@ def error_rate(predictions, labels):
 
 
 def main(argv=None):  # pylint: disable=unused-argument
-  if FLAGS.self_test:
-    print('Running self-test.')
-    train_data, train_labels = fake_data(256)
-    validation_data, validation_labels = fake_data(EVAL_BATCH_SIZE)
-    test_data, test_labels = fake_data(EVAL_BATCH_SIZE)
-    num_epochs = 1
-  else:
-    # Get the data.
-    train_data_filename = maybe_download('train-images-idx3-ubyte.gz')
-    train_labels_filename = maybe_download('train-labels-idx1-ubyte.gz')
-    test_data_filename = maybe_download('t10k-images-idx3-ubyte.gz')
-    test_labels_filename = maybe_download('t10k-labels-idx1-ubyte.gz')
+  # if FLAGS.self_test:
+  #   print('Running self-test.')
+  #   train_data, train_labels = fake_data(256)
+  #   validation_data, validation_labels = fake_data(EVAL_BATCH_SIZE)
+  #   test_data, test_labels = fake_data(EVAL_BATCH_SIZE)
+  #   num_epochs = 1
+  # else:
+  # Get the data.
+  train_data_filename = maybe_download('train-images-idx3-ubyte.gz')
+  train_labels_filename = maybe_download('train-labels-idx1-ubyte.gz')
+  test_data_filename = maybe_download('t10k-images-idx3-ubyte.gz')
+  test_labels_filename = maybe_download('t10k-labels-idx1-ubyte.gz')
 
-    # Extract it into numpy arrays.
-    train_data = extract_data(train_data_filename, 60000)
-    train_labels = extract_labels(train_labels_filename, 60000)
-    test_data = extract_data(test_data_filename, 10000)
-    test_labels = extract_labels(test_labels_filename, 10000)
+  # Extract it into numpy arrays.
+  train_data = extract_data(train_data_filename, 60000)
+  train_labels = extract_labels(train_labels_filename, 60000)
+  test_data = extract_data(test_data_filename, 10000)
+  test_labels = extract_labels(test_labels_filename, 10000)
 
-    # Generate a validation set.
-    validation_data = train_data[:VALIDATION_SIZE, ...]
-    validation_labels = train_labels[:VALIDATION_SIZE]
-    train_data = train_data[VALIDATION_SIZE:, ...]
-    train_labels = train_labels[VALIDATION_SIZE:]
-    num_epochs = NUM_EPOCHS
+  # Generate a validation set.
+  validation_data = train_data[:VALIDATION_SIZE, ...]
+  validation_labels = train_labels[:VALIDATION_SIZE]
+  train_data = train_data[VALIDATION_SIZE:, ...]
+  train_labels = train_labels[VALIDATION_SIZE:]
+  num_epochs = NUM_EPOCHS
+  
   train_size = train_labels.shape[0]
 
   # This is where training samples and labels are fed to the graph.
