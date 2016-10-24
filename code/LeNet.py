@@ -16,6 +16,10 @@ import tensorflow as tf
 from six.moves import xrange  # pylint: disable=redefined-builtin
 from six.moves import urllib
 
+tf.app.flags.DEFINE_boolean("self_test", False, "True if running a self test.")
+tf.app.flags.DEFINE_boolean('use_fp16', False,
+                            "Use half floats instead of full floats if True.")
+FLAGS = tf.app.flags.FLAGS
 
 def data_type():
   """Return the type of the activations, weights, and placeholder variables."""
@@ -63,19 +67,6 @@ def extract_labels(filename, num_images):
   return labels
 
 
-# def fake_data(num_images):
-#   """Generate a fake dataset that matches the dimensions of MNIST."""
-#   data = numpy.ndarray(
-#       shape=(num_images, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS),
-#       dtype=numpy.float32)
-#   labels = numpy.zeros(shape=(num_images,), dtype=numpy.int64)
-#   for image in xrange(num_images):
-#     label = image % 2
-#     data[image, :, :, 0] = label - 0.5
-#     labels[image] = label
-#   return data, labels
-
-
 def error_rate(predictions, labels):
   """Return the error rate based on dense predictions and sparse labels."""
   return 100.0 - (
@@ -83,6 +74,17 @@ def error_rate(predictions, labels):
       numpy.sum(numpy.argmax(predictions, 1) == labels) /
       predictions.shape[0])
 
+
+class ConvNet:
+  """A wrapper class of convolutional neural network"""
+  
+  def __init__(self,params,train_data, test_data):
+    self.image_size = params.image_sizes
+    self.train_data = train_data
+    self.test_data = test_data
+
+  
+  def model():
 
 
 def main(argv=None): # pylint: disable=unused-argument

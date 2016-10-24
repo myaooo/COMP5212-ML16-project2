@@ -3,3 +3,4 @@
 *.pdf
 /code/data
 /code/__pycache__
+*.idea
