@@ -19,9 +19,9 @@ This should achieve a test error of 0.7%. Please keep this model as simple and
 linear as possible, it is meant as a tutorial for simple convolutional models.
 Run with --self_test on the command line to execute a short self-test.
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+# from __future__ import absolute_import
+# from __future__ import division
+# from __future__ import print_function
 
 import gzip
 import os
@@ -42,9 +42,9 @@ NUM_LABELS = 10
 VALIDATION_SIZE = 5000  # Size of the validation set.
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 100
-NUM_EPOCHS = 20
+NUM_EPOCHS = 2
 EVAL_BATCH_SIZE = 100
-EVAL_FREQUENCY = 100  # Number of steps between evaluations.
+EVAL_FREQUENCY = 600  # Number of steps between evaluations.
 
 
 tf.app.flags.DEFINE_boolean("self_test", False, "True if running a self test.")
@@ -141,10 +141,10 @@ def main(argv=None):  # pylint: disable=unused-argument
   test_labels = extract_labels(test_labels_filename, 10000)
 
   # Generate a validation set.
-  validation_data = train_data[:VALIDATION_SIZE, ...]
-  validation_labels = train_labels[:VALIDATION_SIZE]
-  train_data = train_data[VALIDATION_SIZE:, ...]
-  train_labels = train_labels[VALIDATION_SIZE:]
+  # validation_data = train_data[:VALIDATION_SIZE, ...]
+  # validation_labels = train_labels[:VALIDATION_SIZE]
+  # train_data = train_data[VALIDATION_SIZE:, ...]
+  # train_labels = train_labels[VALIDATION_SIZE:]
   num_epochs = NUM_EPOCHS
   
   train_size = train_labels.shape[0]
@@ -283,12 +283,18 @@ def main(argv=None):  # pylint: disable=unused-argument
     return predictions
 
   # Create a local session to run the training.
-  start_time = time.time()
   with tf.Session() as sess:
     # Run all the initializers to prepare the trainable parameters.
     tf.initialize_all_variables().run()
-    print('Initialized!')
+    # Initialize logging arrays
+    epoch = []
+    train_accuracy = []
+    test_accuracy = []
+    train_loss = []
+    time_length = []
+    print('Initialized!')   
     # Loop through training steps.
+    start_time = time.time() 
     for step in xrange(int(num_epochs * train_size) // BATCH_SIZE):
       # Compute the offset of the current minibatch in the data.
       # Note that we could use better randomization across epochs.
@@ -303,24 +309,35 @@ def main(argv=None):  # pylint: disable=unused-argument
       _, l, lr, predictions = sess.run(
           [optimizer, loss, learning_rate, train_prediction],
           feed_dict=feed_dict)
+      if step % (EVAL_FREQUENCY/10) == 0:
+        print('Step %d (epoch %.2f)' %
+              (step, float(step) * BATCH_SIZE / train_size))
       if step % EVAL_FREQUENCY == 0:
         elapsed_time = time.time() - start_time
-        start_time = time.time()
-        print('Step %d (epoch %.2f), %.1f ms' %
-              (step, float(step) * BATCH_SIZE / train_size,
+        start_time = time.time() 
+        epoch.append(float(step) * BATCH_SIZE / train_size)
+        time_length.append(elapsed_time)
+        # Evaluate
+        train_error = error_rate(eval_in_batches(train_data,sess),train_labels)
+        train_accuracy.append(1-0.01*train_error)
+        test_error = error_rate(eval_in_batches(test_data, sess), test_labels)
+        test_accuracy.append(1-0.01*test_error)
+        train_loss.append(l)
+        print('Step %d (epoch %.2f), %.1f ms per 100 step' %
+              (step, epoch[-1],
                1000 * elapsed_time / EVAL_FREQUENCY))
-        print('Minibatch loss: %.3f, learning rate: %.6f' % (l, lr))
-        print('Minibatch error: %.1f%%' % error_rate(predictions, batch_labels))
-        print('Validation error: %.1f%%' % error_rate(
-            eval_in_batches(validation_data, sess), validation_labels))
+        print('Loss: %.3f, learning rate: %.6f' % (l, lr))
+        # print('Minibatch loss: %.3f, learning rate: %.6f' % (l, lr))
+        # print('Minibatch error: %.1f%%' % error_rate(predictions, batch_labels))
+        # print('Validation error: %.1f%%' % error_rate(
+        #     eval_in_batches(validation_data, sess), validation_labels))
         sys.stdout.flush()
     # Finally print the result!
     test_error = error_rate(eval_in_batches(test_data, sess), test_labels)
     print('Test error: %.1f%%' % test_error)
-    if FLAGS.self_test:
-      print('test_error', test_error)
-      assert test_error == 0.0, 'expected 0.0 test_error, got %.2f' % (
-          test_error,)
+    
+    numpy.savetxt('output.csv', [epoch, time_length, loss, train_accuracy, test_accuracy], delimiter=',')
+
 
 
 if __name__ == '__main__':
