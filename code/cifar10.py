@@ -264,6 +264,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
   # Create a local session to run the training.
   with tf.Session() as sess:
+    total_time=time.time()
     # Run all the initializers to prepare the trainable parameters.
     tf.initialize_all_variables().run()
     # Initialize logging arrays
@@ -272,7 +273,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     test_accuracy = []
     train_loss = []
     time_length = []
-    print('Initialized!')   
+    print('Initialized!')
     # Loop through training steps.
     start_time = time.time() 
     for step in xrange(int(num_epochs * train_size) // BATCH_SIZE + 1):
@@ -303,21 +304,18 @@ def main(argv=None):  # pylint: disable=unused-argument
         test_error = error_rate(eval_in_batches(test_data, sess), test_labels)
         test_accuracy.append(1-0.01*test_error)
         train_loss.append(l)
-        print('EPOCH %.2f, %.1f ms per 100 step' %
+        print('Step %d (epoch %.2f), %.1f ms per 100 step' %
               (step, epoch[-1],
                1000 * elapsed_time / EVAL_FREQUENCY))
         print('Loss: %.3f, learning rate: %.6f' % (l, lr))
-        # print('Minibatch loss: %.3f, learning rate: %.6f' % (l, lr))
-        # print('Minibatch error: %.1f%%' % error_rate(predictions, batch_labels))
-        # print('Validation error: %.1f%%' % error_rate(
-        #     eval_in_batches(validation_data, sess), validation_labels))
+        print('Train accuracy: %.1f%%' % 100*train_accuracy[-1])
+        print('Test accuracy: %.1f%%' % 100*test_accuracy[-1])
+
         sys.stdout.flush()
-    # Finally print the result!
-    test_error = error_rate(eval_in_batches(test_data, sess), test_labels)
-    print('Test error: %.1f%%' % test_error)
+        
+    total_time = time.time()-total_time
     
     numpy.savetxt('output.csv', [epoch, time_length, train_loss, train_accuracy, test_accuracy], delimiter=',')
-
 
 
 if __name__ == '__main__':
