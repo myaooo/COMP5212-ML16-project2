@@ -4,3 +4,4 @@
 /code/data
 /code/__pycache__
 *.idea
+/code/output.csv
