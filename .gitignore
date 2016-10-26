@@ -5,3 +5,4 @@
 /code/__pycache__
 *.idea
 /code/output.csv
+/code/remote_run.sh
