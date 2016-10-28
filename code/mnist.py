@@ -121,13 +121,6 @@ def error_rate(predictions, labels):
 
 
 def main(argv=None):  # pylint: disable=unused-argument
-  # if FLAGS.self_test:
-  #   print('Running self-test.')
-  #   train_data, train_labels = fake_data(256)
-  #   validation_data, validation_labels = fake_data(EVAL_BATCH_SIZE)
-  #   test_data, test_labels = fake_data(EVAL_BATCH_SIZE)
-  #   num_epochs = 1
-  # else:
   # Get the data.
   train_data_filename = maybe_download('train-images-idx3-ubyte.gz')
   train_labels_filename = maybe_download('train-labels-idx1-ubyte.gz')
@@ -191,7 +184,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     """The Model definition."""
     # 2D convolution, with 'SAME' padding (i.e. the output feature map has
     # the same size as the input). Note that {strides} is a 4D array whose
-    # shape matches the data layout: [image index, y, x, depth].
+    # shape matches the data layout: [image index, y, x, depth].r
     conv = tf.nn.conv2d(data,
                         conv1_weights,
                         strides=[1, 1, 1, 1],
@@ -328,8 +321,8 @@ def main(argv=None):  # pylint: disable=unused-argument
               (step, epoch[-1],
                1000 * elapsed_time / EVAL_FREQUENCY))
         print('Loss: %.3f, learning rate: %.6f' % (l, lr))
-        print('Train accuracy: %.1f%%' % 100*train_accuracy[-1])
-        print('Test accuracy: %.1f%%' % 100*test_accuracy[-1])
+        print('Train accuracy: %.1f%%' % (100*train_accuracy[-1]))
+        print('Test accuracy: %.1f%%' % (100*test_accuracy[-1]))
         # print('Minibatch loss: %.3f, learning rate: %.6f' % (l, lr))
         # print('Minibatch error: %.1f%%' % error_rate(predictions, batch_labels))
         # print('Validation error: %.1f%%' % error_rate(
