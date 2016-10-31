@@ -3,108 +3,130 @@
 # Ming Yao
 # amended from mnist.py
 
-import gzip
 import os
 import sys
+import pickle
 import time
 
-import numpy
+import numpy as np
 from six.moves import urllib
-from six.moves import xrange  # pylint: disable=redefined-builtin
+from convnet import *
 import tensorflow as tf
+import tarfile
 
-SOURCE_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz'
-WORK_DIRECTORY = 'data'
-IMAGE_SIZE = 28
-NUM_CHANNELS = 1
+DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
+WORK_DIRECTORY = 'cifar-10'
+DATA_DIRECTORY = 'cifar-10/cifar-10-batches-py/'
+IMAGE_SIZE = 32
+NUM_CHANNELS = 3
 PIXEL_DEPTH = 255
 NUM_LABELS = 10
-VALIDATION_SIZE = 5000  # Size of the validation set.
+TRAIN_SIZE = 50000
+TEST_SIZE = 10000
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 100
-NUM_EPOCHS = 20
+NUM_EPOCHS = 2
 EVAL_BATCH_SIZE = 100
-EVAL_FREQUENCY = 600  # Number of steps between evaluations.
+EVAL_FREQUENCY = 500  # Number of steps between evaluations.
 
 
-tf.app.flags.DEFINE_boolean("self_test", False, "True if running a self test.")
-tf.app.flags.DEFINE_boolean('use_fp16', False,
-                            "Use half floats instead of full floats if True.")
 FLAGS = tf.app.flags.FLAGS
 
+# Basic model parameters.
+tf.app.flags.DEFINE_integer('batch_size', 100,
+                            """Number of images to process in a batch.""")
+tf.app.flags.DEFINE_string('data_dir', 'cifar-10',
+                           """Path to the CIFAR-10 data directory.""")
+tf.app.flags.DEFINE_boolean('use_fp16', False,
+                            """Train the model using fp16.""")
 
-def data_type():
-  """Return the type of the activations, weights, and placeholder variables."""
-  if FLAGS.use_fp16:
-    return tf.float16
-  else:
-    return tf.float32
-
-
-def maybe_download(filename):
-  """Download and extract the tarball from Alex's website."""
-  if not tf.gfile.Exists(WORK_DIRECTORY):
-    tf.gfile.MakeDirs(WORK_DIRECTORY)
-  filepath = os.path.join(WORK_DIRECTORY, filename)
-  if not tf.gfile.Exists(filepath):
-    filepath, _ = urllib.request.urlretrieve(SOURCE_URL + filename, filepath)
-    with tf.gfile.GFile(filepath) as f:
-      size = f.size()
-    print('Successfully downloaded', filename, size, 'bytes.')
-  return filepath
+# Global constants describing the CIFAR-10 data set.
+# train_size = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
+# test_size = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
 
-def extract_data(filename, num_images):
-  """Extract the images into a 4D tensor [image index, y, x, channels].
+def maybe_download_and_extract():
+    """Download and extract the tarball from Alex's website."""
+    if not os.path.exists(WORK_DIRECTORY):
+        os.makedirs(WORK_DIRECTORY)
+    filename = DATA_URL.split('/')[-1]
+    filepath = os.path.join(WORK_DIRECTORY, filename)
+    if not os.path.exists(filepath):
+        def _progress(count, block_size, total_size):
+            sys.stdout.write('\r>> Downloading %s %.1f%%' % (filename,
+                                                             float(count * block_size) / float(total_size) * 100.0))
+            sys.stdout.flush()
 
-  Values are rescaled from [0, 255] down to [-0.5, 0.5].
-  """
-  print('Extracting', filename)
-  with gzip.open(filename) as bytestream:
-    bytestream.read(16)
-    buf = bytestream.read(IMAGE_SIZE * IMAGE_SIZE * num_images * NUM_CHANNELS)
-    data = numpy.frombuffer(buf, dtype=numpy.uint8).astype(numpy.float32)
+        filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
+        print()
+        statinfo = os.stat(filepath)
+        print('Successfully downloaded', filename, statinfo.st_size, 'bytes.')
+    if not os.path.exists(DATA_DIRECTORY):
+        tarfile.open(filepath, 'r:gz').extractall(WORK_DIRECTORY)
+
+def extract_data_and_label(eval_data = False):
+    """Extract the images into a 4D tensor [image index, y, x, channels].
+
+    Values are rescaled from [0, 255] down to [-0.5, 0.5].
+    """
+    data_list = []
+    label_list = []
+    num_images = TRAIN_SIZE
+    filenames = [os.path.join(DATA_DIRECTORY, 'data_batch_%d' % i) for i in range(1,6)]
+    if eval_data:
+        num_images = TEST_SIZE
+        filenames = [os.path.join(DATA_DIRECTORY, 'test_batch')]
+    for filename in filenames:
+        print('Extracting', filename)
+        # parse file using pickle
+        f = open(filename,'rb')
+        dict = pickle.load(f,encoding='bytes')
+        # parsing data
+        data = dict[b'data']
+        data_list.append(data)
+        label_list.append(dict[b'labels'])
+
+    data = np.vstack(data_list)
+    labels = np.hstack(label_list)
     data = (data - (PIXEL_DEPTH / 2.0)) / PIXEL_DEPTH
-    data = data.reshape(num_images, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)
-    return data
-
-
-def extract_labels(filename, num_images):
-  """Extract the labels into a vector of int64 label IDs."""
-  print('Extracting', filename)
-  with gzip.open(filename) as bytestream:
-    bytestream.read(8)
-    buf = bytestream.read(1 * num_images)
-    labels = numpy.frombuffer(buf, dtype=numpy.uint8).astype(numpy.int64)
-  return labels
-
-
-# def fake_data(num_images):
-#   """Generate a fake dataset that matches the dimensions of MNIST."""
-#   data = numpy.ndarray(
-#       shape=(num_images, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS),
-#       dtype=numpy.float32)
-#   labels = numpy.zeros(shape=(num_images,), dtype=numpy.int64)
-#   for image in xrange(num_images):
-#     label = image % 2
-#     data[image, :, :, 0] = label - 0.5
-#     labels[image] = label
-#   return data, labels
+    data = data.reshape(num_images, NUM_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)
+    # reorder dimensions from [num_channel,x,y] into [x,y,num_channel]
+    data = data.transpose((0, 2, 3, 1))
+    return data, labels
 
 
 def error_rate(predictions, labels):
   """Return the error rate based on dense predictions and sparse labels."""
   return 100.0 - (
       100.0 *
-      numpy.sum(numpy.argmax(predictions, 1) == labels) /
+      np.sum(np.argmax(predictions, 1) == labels) /
       predictions.shape[0])
 
 
 def main(argv=None):  # pylint: disable=unused-argument
-    pass
 
+    maybe_download_and_extract()
+    # Extract it into numpy arrays.
+    train_data, train_labels = extract_data_and_label(eval_data=False)
+    test_data, test_labels = extract_data_and_label(eval_data=True)
 
+    num_epochs = NUM_EPOCHS
+
+    # LeNet-5 like Model
+    model = ConvNet()
+    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS)
+    model.add_conv_layer([5, 5], 32, [1, 1, 1, 1], activation='relu')
+    model.add_pool('max', [1, 2, 2, 1], [1, 2, 2, 1])
+    model.add_conv_layer([5, 5], 64, [1, 1, 1, 1], activation='relu')
+    model.add_pool('max', [1, 2, 2, 1], [1, 2, 2, 1])
+    model.add_fully_connected(512, 'relu')
+    model.add_dropout(0.5)
+    model.add_fully_connected(NUM_LABELS,'relu')
+    model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=0)
+    model.set_optimizer('Momentum')
+    model.init()
+    model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY)
 
 
 if __name__ == '__main__':
-  tf.app.run()
+    tf.app.run()

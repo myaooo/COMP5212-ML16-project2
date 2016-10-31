@@ -2,8 +2,8 @@
 
 source ~/tensorflow/bin/activate
 
-echo "running mnist.py"
-python3 mnist.py
-echo "mnist.py done"
+echo "running mnist_new.py"
+python3 mnist_new.py
+echo "mnist_new.py done"
 
 deactivate

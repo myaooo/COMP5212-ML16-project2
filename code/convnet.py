@@ -237,6 +237,7 @@ class ConvNet:
             train_accuracy = []
             test_accuracy = []
             train_loss = []
+            test_loss = []
             time_length = []
             print('Initialized!')
             # Loop through training steps.
@@ -253,13 +254,13 @@ class ConvNet:
                 feed_dict = {self.train_data_node: batch_data,
                              self.train_labels_node: batch_labels}
                 # Run the graph and fetch some of the nodes.
-                _, l, lr, predictions = sess.run(
-                    [optimizer, loss, learning_rate, self.train_prediction],
+                _, lr = sess.run(
+                    [optimizer, learning_rate],
                     feed_dict=feed_dict)
                 if step % (eval_frequency / 10) == 0:
                     print('Step %d (epoch %.2f)' %
                           (step, float(step) * batch_size / train_size))
-                if step % eval_frequency == 0:
+                if step % eval_frequency == 0 and step != 0:
                     elapsed_time = time.time() - start_time
                     start_time = time.time()
                     epoch.append(float(step) * batch_size / train_size)
@@ -269,18 +270,20 @@ class ConvNet:
                     train_accuracy.append(1 - 0.01 * train_error)
                     test_error = error_rate(self.eval_in_batches(test_data, sess), test_labels)
                     test_accuracy.append(1 - 0.01 * test_error)
-                    train_loss.append(l)
-                    print('Step %d (epoch %.2f), %.1f ms per 100 step' %
-                          (step, epoch[-1],
-                           1000 * elapsed_time / eval_frequency))
-                    print('Loss: %.3f, learning rate: %.6f' % (l, lr))
+                    train_loss.append(self.current_loss(train_data,train_labels,sess))
+                    test_loss.append(self.current_loss(test_data,test_labels,sess))
+                    print('Epoch %.2f, %.1f ms per step' %
+                          (epoch[-1], 1000 * elapsed_time / eval_frequency))
+                    print('Mean train loss: %.3f, mean test loss: %.3f, learning rate: %.6f'
+                          % (train_loss[-1], test_loss[-1], lr))
                     print('Train accuracy: %.1f%%' % (100 * train_accuracy[-1]))
                     print('Test accuracy: %.1f%%' % (100 * test_accuracy[-1]))
                     sys.stdout.flush()
 
         total_time = time.time() - total_time
         print('Total running time: %.2f s' % total_time)
-        np.savetxt('output.csv', [epoch, time_length, train_loss, train_accuracy, test_accuracy], delimiter=',')
+        current_str = time.strftime("%m%d%H%M",time.localtime())
+        np.savetxt('./output/out'+current_str+'.csv', [epoch, time_length, train_loss, train_accuracy, test_accuracy], delimiter=',')
 
     def regularizer(self):
         if self.regular_coef == 0:
@@ -309,3 +312,16 @@ class ConvNet:
                     feed_dict={self.eval_data: data[-EVAL_BATCH_SIZE:, ...]})
                 predictions[begin:, :] = batch_predictions[begin - size:, :]
         return predictions
+
+    def current_loss(self, data, labels, sess):
+
+        size = data.shape[0]
+        batch_size = self.dshape[0]
+        r = range(0,size,batch_size)
+        n = len(r)
+        loss = np.ndarray(shape=(n),dtype=np.float32)
+        for i, begin in enumerate(r):
+            end = begin + batch_size
+            loss[i] = sess.run(self.loss, feed_dict={
+                self.train_data_node: data[begin:end, ...], self.train_labels_node: labels[begin:end, ...]})
+        return loss.sum() / n

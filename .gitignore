@@ -1,8 +1,10 @@
 .DS_Store
-/caltech
 *.pdf
 /code/data
+/code/cifar-10
 /code/__pycache__
 *.idea
 /code/output.csv
 remote_run.sh
+/code/output
+/code/tmp
