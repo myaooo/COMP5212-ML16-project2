@@ -3,6 +3,7 @@
 # file: convnet.py
 # author: MING Yao
 #
+# TODO: Abstract Layer class
 
 import numpy as np
 import tensorflow as tf
@@ -85,6 +86,8 @@ class ConvNet:
     def add_dropout(self, prob):
         self.layers.append({"type":"dropout",'prob':prob})
 
+    def add_flatten(self):
+        self.layer.append({"type":"flatten"})
 
     def set_loss(self, loss, reg = 0):
         if isinstance(loss, type(tf.nn.softmax)):
@@ -212,7 +215,7 @@ class ConvNet:
         return result
 
 
-    def train_with_eval(self, train_data, train_labels, test_data, test_labels, num_epochs=20, eval_frequency = 100):
+    def train_with_eval(self, train_data, train_labels, test_data, test_labels, num_epochs=20, eval_frequency = 100, base_lr=0.01, decay_rate=0.95):
         """training function"""
         loss = self.loss
         # logits = self.logits
@@ -226,10 +229,10 @@ class ConvNet:
         batch = tf.Variable(0, dtype=self.dtype)
         # Decay once per epoch, using an exponential schedule starting at 0.01.
         learning_rate = tf.train.exponential_decay(
-            0.01,  # Base learning rate.
+            base_lr,  # Base learning rate.
             batch_size*batch,  # Current index into the dataset.
             train_size,  # Decay step.
-            0.95,  # Decay rate.
+            decay_rate,  # Decay rate.
             staircase=True)
         # Use simple momentum for the optimization.
         optimizer = self.optimizer(learning_rate, 0.9).minimize(loss, global_step=batch)

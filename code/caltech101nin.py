@@ -84,7 +84,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=0)
     model.set_optimizer('Momentum')
     model.init()
-    model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY)
+    model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY,0.1,0.95)
 
 
 if __name__ == '__main__':
