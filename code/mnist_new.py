@@ -18,10 +18,10 @@ IMAGE_SIZE = 28
 NUM_CHANNELS = 1
 PIXEL_DEPTH = 255
 NUM_LABELS = 10
-VALIDATION_SIZE = 5000  # Size of the validation set.
+# VALIDATION_SIZE = 5000  # Size of the validation set.
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 100
-NUM_EPOCHS = 2
+NUM_EPOCHS = 20
 EVAL_BATCH_SIZE = 100
 EVAL_FREQUENCY = 600  # Number of steps between evaluations.
 
@@ -81,12 +81,12 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     # LeNet-5 like Model
     model = ConvNet()
-    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS)
-    model.add_conv_layer([5,5],20,[1,1,1,1],activation='relu')
+    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS, eval_batch=EVAL_BATCH_SIZE)
+    model.add_conv_layer([5,5],32,[1,1,1,1],activation='relu')
     model.add_pool('max', [1,2,2,1], [1,2,2,1])
-    model.add_conv_layer([5,5],40,[1,1,1,1],activation='relu')
+    model.add_conv_layer([5,5],64,[1,1,1,1],activation='relu')
     model.add_pool('max', [1,2,2,1], [1,2,2,1])
-    model.add_fully_connected(500,'relu')
+    model.add_fully_connected(512,'relu')
     model.add_dropout(0.5)
     model.add_fully_connected(NUM_LABELS,'relu')
     model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=5e-4)

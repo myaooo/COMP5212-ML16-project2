@@ -18,10 +18,10 @@ NUM_LABELS = 102 # 101 categories with a background
 TRAIN_SIZE = 8000
 TEST_SIZE = 1144
 SEED = 66478  # Set to None for random seed.
-BATCH_SIZE = 100
-NUM_EPOCHS = 20
-EVAL_BATCH_SIZE = 100
-EVAL_FREQUENCY = 80  # Number of steps between evaluations.
+BATCH_SIZE = 50
+NUM_EPOCHS = 2
+EVAL_BATCH_SIZE = 104 # set this number to meet 1144/104 = 11
+EVAL_FREQUENCY = 160  # Number of steps between evaluations.
 
 
 FLAGS = tf.app.flags.FLAGS
@@ -66,7 +66,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     # Network in Network
     model = ConvNet()
-    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS)
+    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS, eval_batch=EVAL_BATCH_SIZE)
     model.add_conv_layer([5, 5], 192, [1, 1, 1, 1], activation='relu')
     model.add_conv_layer([1, 1], 160, [1, 1, 1, 1], activation='relu')
     model.add_conv_layer([1, 1], 96, [1, 1, 1, 1], activation='relu')
@@ -79,10 +79,8 @@ def main(argv=None):  # pylint: disable=unused-argument
     model.add_dropout(0.5)
     model.add_conv_layer([3, 3], 192, [1, 1, 1, 1], activation='relu')
     model.add_conv_layer([1, 1], 192, [1, 1, 1, 1], activation='relu')
-    model.add_conv_layer([1, 1], 10, [1, 1, 1, 1], activation='relu')
-    model.add_pool('avg', [1, 7, 7, 1], [1, 1, 1, 1])
-    model.add_dropout(0.5)
-    model.add_fully_connected(NUM_LABELS,'relu')
+    model.add_conv_layer([1, 1], NUM_LABELS, [1, 1, 1, 1], activation='relu')
+    model.add_pool('avg', [1, 8, 8, 1], [1, 1, 1, 1])
     model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=0)
     model.set_optimizer('Momentum')
     model.init()

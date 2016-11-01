@@ -20,10 +20,10 @@ NUM_LABELS = 102 # 101 categories with a background
 TRAIN_SIZE = 8000
 TEST_SIZE = 1144
 SEED = 66478  # Set to None for random seed.
-BATCH_SIZE = 100
-NUM_EPOCHS = 20
-EVAL_BATCH_SIZE = 100
-EVAL_FREQUENCY = 80  # Number of steps between evaluations.
+BATCH_SIZE = 50
+NUM_EPOCHS = 40
+EVAL_BATCH_SIZE = 104
+EVAL_FREQUENCY = 160  # Number of steps between evaluations.
 
 
 FLAGS = tf.app.flags.FLAGS
@@ -69,7 +69,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     # LeNet-5 like Model
     model = ConvNet()
-    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS)
+    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS, eval_batch=EVAL_BATCH_SIZE)
     model.add_conv_layer([5, 5], 32, [1, 1, 1, 1], activation='relu')
     model.add_pool('max', [1, 2, 2, 1], [1, 2, 2, 1])
     model.add_conv_layer([5, 5], 64, [1, 1, 1, 1], activation='relu')

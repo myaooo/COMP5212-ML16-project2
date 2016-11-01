@@ -13,7 +13,7 @@ import time
 import sys
 
 SEED = None
-EVAL_BATCH_SIZE = 100
+_EVAL_BATCH_SIZE = 100
 
 def activation(str = 'linear'):
     if str == 'linear':
@@ -33,7 +33,7 @@ class ConvNet:
     def __init__(self):
         self.layers = []
 
-    def input_data(self, dshape=None, num_label=2, dtype=tf.float32):
+    def input_data(self, dshape=None, num_label=2, eval_batch = _EVAL_BATCH_SIZE, dtype=tf.float32):
         """
         :param shape: (batch_size, size_x, size_y, num_channel)
         :param dtype: data type
@@ -45,9 +45,11 @@ class ConvNet:
         self.num_label = num_label
 
         # creating placeholder
+        self.eval_batch_size = eval_batch
         self.train_data_node = tf.placeholder(dtype, dshape)
         self.train_labels_node = tf.placeholder(tf.int64, shape=(dshape[0],))
-        self.eval_data = tf.placeholder(dtype, shape=(EVAL_BATCH_SIZE, dshape[1], dshape[2],dshape[3]))
+        self.eval_data = tf.placeholder(dtype, shape=(eval_batch, dshape[1], dshape[2],dshape[3]))
+        self.eval_labels = tf.placeholder(tf.int64, shape=(eval_batch,))
         self.layers.append({'type':'input', 'output':list(dshape[1:])})
 
     def add_conv_layer(self, filter, depth, strides, padding = 'SAME', activation = 'linear', bias = True):
@@ -116,7 +118,7 @@ class ConvNet:
         layers = self.layers
         for n, layer in enumerate(layers):
             # don't need to initialized input layer
-            if layer['type'] == 'max' or layer['type'] == 'min':
+            if layer['type'] == 'max' or layer['type'] == 'avg':
                 output_ = layers[n - 1]['output']
                 strides = layer['strides']
                 x = math.ceil(output_[0] / strides[1])
@@ -133,9 +135,9 @@ class ConvNet:
                 out_channel = layer['depth']
                 layer['output'] = [x,y,out_channel]
                 layer['shape'] = [layer['filter'][0], layer['filter'][1], in_channel, out_channel]
-                layer['weight'] = tf.Variable(tf.truncated_normal(layer['shape'], stddev=0.1, seed=SEED, dtype=dtype))
+                layer['weight'] = tf.Variable(tf.truncated_normal(layer['shape'], stddev=0.1, seed=SEED, dtype=dtype), name='conv'+str(n))
                 if layer['isbias']:
-                    layer['bias'] = tf.Variable(tf.constant(0.1, shape=[out_channel], dtype=dtype))
+                    layer['bias'] = tf.Variable(tf.constant(0.1, shape=[out_channel], dtype=dtype),name = 'cbias'+str(n))
 
             # fully connected layer
             elif layer['type'] == 'fully_connected':
@@ -145,10 +147,12 @@ class ConvNet:
                 else:
                     layer['shape'] = [output_[0], layer['depth']]
                 layer['output'] = [layer['depth']]
-                layer['weight'] = tf.Variable(tf.truncated_normal(layer['shape'], stddev=0.1, seed=SEED, dtype=dtype))
+                layer['weight'] = tf.Variable(tf.truncated_normal(layer['shape'], stddev=0.1, seed=SEED, dtype=dtype),name='fc'+str(n))
                 if layer['isbias']:
-                    layer['bias'] = tf.Variable(tf.constant(0.1, shape=[layer['depth']], dtype=dtype))
-            elif layer['type'] == 'dropout' or layer['type'] == 'input':
+                    layer['bias'] = tf.Variable(tf.constant(0.1, shape=[layer['depth']], dtype=dtype),name='fbias'+str(n))
+            elif layer['type'] == 'dropout':
+                layer['output'] = layers[n-1]['output']
+            elif layer['type'] == 'input':
                 continue
             else:
                 print('Initializing: Unknown layer!')
@@ -157,6 +161,8 @@ class ConvNet:
         self.logits = self.model(self.train_data_node, True)
         self.loss = tf.reduce_mean(self.loss_function(self.logits, self.train_labels_node))
         self.loss += self.regularizer()
+        self.train_loss = tf.reduce_mean(self.loss_function(self.model(self.eval_data), self.eval_labels))
+        self.train_loss += self.regularizer()
         # Predictions for the current training minibatch.
         self.train_prediction = tf.nn.softmax(self.logits)
 
@@ -181,8 +187,11 @@ class ConvNet:
                     result = activation(layer['activation'])(tf.nn.bias_add(result, layer['bias']))
             elif layer['type'] == 'max':
                 result = tf.nn.max_pool(result, layer['kernel'], layer['strides'], layer['padding'])
-            elif layer['type'] == 'min':
+            elif layer['type'] == 'avg':
                 result = tf.nn.avg_pool(result, layer['kernel'], layer['strides'], layer['padding'])
+                if n == len(layers)-1: # hard code of global average layer
+                    shape = result.get_shape().as_list()
+                    result = tf.reshape(result, [shape[0], shape[1] * shape[2] * shape[3]])
             elif layer['type'] == 'dropout' and train:
                 result = tf.nn.dropout(result, layer['prob'], seed=SEED)
             elif layer['type'] == 'fully_connected':
@@ -205,7 +214,6 @@ class ConvNet:
 
     def train_with_eval(self, train_data, train_labels, test_data, test_labels, num_epochs=20, eval_frequency = 100):
         """training function"""
-
         loss = self.loss
         # logits = self.logits
         train_size = train_labels.shape[0]
@@ -226,6 +234,7 @@ class ConvNet:
         # Use simple momentum for the optimization.
         optimizer = self.optimizer(learning_rate, 0.9).minimize(loss, global_step=batch)
 
+        saver = tf.train.Saver()
         # Create a local session to run the training.
         with tf.Session() as sess:
 
@@ -280,10 +289,16 @@ class ConvNet:
                     print('Test accuracy: %.1f%%' % (100 * test_accuracy[-1]))
                     sys.stdout.flush()
 
-        total_time = time.time() - total_time
-        print('Total running time: %.2f s' % total_time)
-        current_str = time.strftime("%m%d%H%M",time.localtime())
-        np.savetxt('./output/out'+current_str+'.csv', [epoch, time_length, train_loss, train_accuracy, test_accuracy], delimiter=',')
+            total_time = time.time() - total_time
+            print('Total running time: %.2f s' % total_time)
+            current_str = time.strftime("%m%d%H%M",time.localtime())
+            outputfile = 'out'+current_str+'.csv'
+            np.savetxt('./output/'+outputfile, [epoch, time_length, train_loss, test_loss, train_accuracy, test_accuracy], delimiter=',')
+            print('output saved to '+outputfile)
+            modelfile = '/output/model'+current_str+'.ckpt'
+            save_path = saver.save(sess, modelfile)
+            print("Model saved in file: %s" % save_path)
+
 
     def regularizer(self):
         if self.regular_coef == 0:
@@ -297,31 +312,50 @@ class ConvNet:
     def eval_in_batches(self, data, sess):
         """Get all predictions for a dataset by running it in small batches."""
         size = data.shape[0]
-        if size < EVAL_BATCH_SIZE:
+        eval_batch_size = self.eval_batch_size
+        prediction = self.eval_prediction
+        data_node = self.eval_data
+        # if train:
+        #     eval_batch_size = self.dshape[0]
+        #     prediction = self.train_prediction
+        #     data_node = self.train_data_node
+        
+        if size < eval_batch_size:
             raise ValueError("batch size for evals larger than dataset: %d" % size)
         predictions = np.ndarray(shape=(size, self.num_label), dtype=np.float32)
-        for begin in range(0, size, EVAL_BATCH_SIZE):
-            end = begin + EVAL_BATCH_SIZE
+        for begin in range(0, size, eval_batch_size):
+            end = begin + eval_batch_size
             if end <= size:
                 predictions[begin:end, :] = sess.run(
-                    self.eval_prediction,
-                    feed_dict={self.eval_data: data[begin:end, ...]})
+                    prediction,
+                    feed_dict={data_node: data[begin:end, ...]})
             else:
                 batch_predictions = sess.run(
-                    self.eval_prediction,
-                    feed_dict={self.eval_data: data[-EVAL_BATCH_SIZE:, ...]})
+                    prediction,
+                    feed_dict={data_node: data[-eval_batch_size:, ...]})
                 predictions[begin:, :] = batch_predictions[begin - size:, :]
         return predictions
 
     def current_loss(self, data, labels, sess):
-
         size = data.shape[0]
         batch_size = self.dshape[0]
+        losser = self.loss
+        data_node = self.train_data_node
+        labels_node = self.train_labels_node
+        # if train:
+        #     batch_size = self.dshape[0]
+        #     losser = self.train_loss
+        #     data_node = self.eval_data
+        #     lavels_node = self.eval_labels
         r = range(0,size,batch_size)
         n = len(r)
         loss = np.ndarray(shape=(n),dtype=np.float32)
         for i, begin in enumerate(r):
             end = begin + batch_size
-            loss[i] = sess.run(self.loss, feed_dict={
-                self.train_data_node: data[begin:end, ...], self.train_labels_node: labels[begin:end, ...]})
+            if end <= size:
+                loss[i] = sess.run(losser, feed_dict={
+                    data_node: data[begin:end, ...], labels_node: labels[begin:end, ...]})
+            else:
+                loss[i] = sess.run(losser, feed_dict={
+                    data_node: data[-batch_size:, ...], labels_node: labels[-batch_size:, ...]})
         return loss.sum() / n
