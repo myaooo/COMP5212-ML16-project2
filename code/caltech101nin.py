@@ -80,7 +80,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     model.add_conv_layer([3, 3], 192, [1, 1, 1, 1], activation='relu')
     model.add_conv_layer([1, 1], 192, [1, 1, 1, 1], activation='relu')
     model.add_conv_layer([1, 1], NUM_LABELS, [1, 1, 1, 1], activation='relu')
-    model.add_pool('avg', [1, 8, 8, 1], [1, 1, 1, 1])
+    model.add_pool('avg', [1, 8, 8, 1], [1, 8, 8, 1])
     model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=0)
     model.set_optimizer('Momentum')
     model.init()

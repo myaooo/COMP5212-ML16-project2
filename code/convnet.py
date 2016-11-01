@@ -234,7 +234,7 @@ class ConvNet:
         # Use simple momentum for the optimization.
         optimizer = self.optimizer(learning_rate, 0.9).minimize(loss, global_step=batch)
 
-        saver = tf.train.Saver()
+        # saver = tf.train.Saver()
         # Create a local session to run the training.
         with tf.Session() as sess:
 
@@ -295,9 +295,9 @@ class ConvNet:
             outputfile = 'out'+current_str+'.csv'
             np.savetxt('./output/'+outputfile, [epoch, time_length, train_loss, test_loss, train_accuracy, test_accuracy], delimiter=',')
             print('output saved to '+outputfile)
-            modelfile = '/output/model'+current_str+'.ckpt'
-            save_path = saver.save(sess, modelfile)
-            print("Model saved in file: %s" % save_path)
+            # modelfile = '/output/model'+current_str+'.ckpt'
+            # save_path = saver.save(sess, modelfile)
+            # print("Model saved in file: %s" % save_path)
 
 
     def regularizer(self):
