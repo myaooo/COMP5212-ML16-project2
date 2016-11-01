@@ -8,3 +8,4 @@
 remote_run.sh
 /code/output
 /code/tmp
+*.log
