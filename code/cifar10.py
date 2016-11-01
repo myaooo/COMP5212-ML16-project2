@@ -25,7 +25,7 @@ TRAIN_SIZE = 50000
 TEST_SIZE = 10000
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 100
-NUM_EPOCHS = 20
+NUM_EPOCHS = 50
 EVAL_BATCH_SIZE = 100
 EVAL_FREQUENCY = 500  # Number of steps between evaluations.
 
