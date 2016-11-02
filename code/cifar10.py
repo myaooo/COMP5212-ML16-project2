@@ -119,13 +119,13 @@ def main(argv=None):  # pylint: disable=unused-argument
     model.add_pool('max', kernel_size=[1, 2, 2, 1], strides=[1, 2, 2, 1])
     model.add_conv_layer(filter=[5, 5], depth=64, strides=[1, 1, 1, 1], activation='relu')
     model.add_pool('max', kernel_size=[1, 2, 2, 1], strides=[1, 2, 2, 1])
-    model.add_fully_connected(n_units=512, 'relu')
+    model.add_fully_connected(n_units=512, activation='relu')
     model.add_dropout(0.5)
-    model.add_fully_connected(n_units=NUM_LABELS,'relu')
+    model.add_fully_connected(n_units=NUM_LABELS,activation='relu')
     model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=5e-4)
-    model.set_optimizer('Momentum')
+    model.set_optimizer('Adam')
     model.init()
-    model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY)
+    model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY,0.001)
 
 
 if __name__ == '__main__':
