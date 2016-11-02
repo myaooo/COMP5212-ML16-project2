@@ -87,7 +87,7 @@ class ConvNet:
         self.layers.append({"type":"dropout",'prob':prob})
 
     def add_flatten(self):
-        self.layer.append({"type":"flatten"})
+        self.layers.append({"type":"flatten"})
 
     def set_loss(self, loss, reg = 0):
         if isinstance(loss, type(tf.nn.softmax)):
@@ -99,6 +99,7 @@ class ConvNet:
 
     def set_optimizer(self, str):
         self.optimizer=None
+        self.optimizer_str = str
         if str == 'Momentum':
             self.optimizer = tf.train.MomentumOptimizer
         elif str == 'GradientDescent':
@@ -155,7 +156,7 @@ class ConvNet:
                     layer['bias'] = tf.Variable(tf.constant(0.1, shape=[layer['depth']], dtype=dtype),name='fbias'+str(n))
             elif layer['type'] == 'dropout':
                 layer['output'] = layers[n-1]['output']
-            elif layer['type'] == 'input':
+            elif layer['type'] == 'input' or layer['type'] =='flatten':
                 continue
             else:
                 print('Initializing: Unknown layer!')
@@ -192,9 +193,9 @@ class ConvNet:
                 result = tf.nn.max_pool(result, layer['kernel'], layer['strides'], layer['padding'])
             elif layer['type'] == 'avg':
                 result = tf.nn.avg_pool(result, layer['kernel'], layer['strides'], layer['padding'])
-                if n == len(layers)-1: # hard code of global average layer
-                    shape = result.get_shape().as_list()
-                    result = tf.reshape(result, [shape[0], shape[1] * shape[2] * shape[3]])
+                # if n == len(layers)-1: # hard code of global average layer
+                #     shape = result.get_shape().as_list()
+                #     result = tf.reshape(result, [shape[0], shape[1] * shape[2] * shape[3]])
             elif layer['type'] == 'dropout' and train:
                 result = tf.nn.dropout(result, layer['prob'], seed=SEED)
             elif layer['type'] == 'fully_connected':
@@ -212,6 +213,13 @@ class ConvNet:
                 else:
                     # call activation function
                     result = activation(layer['activation'])(result)
+            elif layer['type'] == 'flatten':
+                shape = result.get_shape().as_list()
+                if len(shape) <= 2:
+                    continue
+                else:
+                    n_output = int(np.prod(shape[1:]))
+                    result = tf.reshape(result, [shape[0], n_output])
         return result
 
 
@@ -227,15 +235,17 @@ class ConvNet:
         batch_size = train_size if (batch_size == None) else batch_size
 
         batch = tf.Variable(0, dtype=self.dtype)
-        # Decay once per epoch, using an exponential schedule starting at 0.01.
+        # Decay once per epoch, using an exponential schedule
         learning_rate = tf.train.exponential_decay(
             base_lr,  # Base learning rate.
             batch_size*batch,  # Current index into the dataset.
             train_size,  # Decay step.
             decay_rate,  # Decay rate.
             staircase=True)
-        # Use simple momentum for the optimization.
+        # Set up optimizer.
         optimizer = self.optimizer(learning_rate, 0.9).minimize(loss, global_step=batch)
+        if self.optimizer_str == 'Adam':
+            optimizer = self.optimizer(base_lr).minimize(loss, global_step=batch)
 
         # saver = tf.train.Saver()
         # Create a local session to run the training.
