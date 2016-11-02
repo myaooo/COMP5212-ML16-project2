@@ -1,6 +1,6 @@
 #
 # project: project 2
-# file: mnist_new.py
+# file: mnist.py
 # author: MING Yao
 #
 
@@ -82,9 +82,9 @@ def main(argv=None):  # pylint: disable=unused-argument
     # LeNet-5 like Model
     model = ConvNet()
     model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS, eval_batch=EVAL_BATCH_SIZE)
-    model.add_conv_layer([5, 5], depth=32, strides=[1, 1, 1, 1], activation='relu')
+    model.add_conv_layer(filter=[5, 5], depth=32, strides=[1, 1, 1, 1], activation='relu')
     model.add_pool('max', kernel_size=[1, 2, 2, 1], strides=[1, 2, 2, 1])
-    model.add_conv_layer([5, 5], depth=64, strides=[1, 1, 1, 1], activation='relu')
+    model.add_conv_layer(filter=[5, 5], depth=64, strides=[1, 1, 1, 1], activation='relu')
     model.add_pool('max', kernel_size=[1, 2, 2, 1], strides=[1, 2, 2, 1])
     model.add_fully_connected(n_units=512, 'relu')
     model.add_dropout(0.5)
