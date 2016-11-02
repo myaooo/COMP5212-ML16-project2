@@ -284,7 +284,7 @@ class ConvNet:
                           (step, float(step) * batch_size / train_size))
                 if step % eval_frequency == 0 and step != 0:
                     elapsed_time = time.time() - start_time
-                    start_time = time.time()
+                    
                     epoch.append(float(step) * batch_size / train_size)
                     time_length.append(elapsed_time)
                     # Evaluate
@@ -301,6 +301,8 @@ class ConvNet:
                     print('Train accuracy: %.1f%%' % (100 * train_accuracy[-1]))
                     print('Test accuracy: %.1f%%' % (100 * test_accuracy[-1]))
                     sys.stdout.flush()
+
+                    start_time = time.time()
 
             total_time = time.time() - total_time
             print('Total running time: %.2f s' % total_time)
