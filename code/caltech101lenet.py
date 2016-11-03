@@ -11,7 +11,6 @@ from convnet import *
 import tensorflow as tf
 import scipy.io as sio
 
-DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
 DATA_DIRECTORY = 'caltech'
 IMAGE_SIZE = 32
 NUM_CHANNELS = 3
@@ -21,15 +20,15 @@ TRAIN_SIZE = 8000
 TEST_SIZE = 1144
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 50
-NUM_EPOCHS = 40
-EVAL_BATCH_SIZE = 104
+NUM_EPOCHS = 60
+# EVAL_BATCH_SIZE = 104
 EVAL_FREQUENCY = 160  # Number of steps between evaluations.
 
 
 FLAGS = tf.app.flags.FLAGS
 
 # Basic model parameters.
-tf.app.flags.DEFINE_integer('batch_size', 100,
+tf.app.flags.DEFINE_integer('batch_size', 50,
                             """Number of images to process in a batch.""")
 tf.app.flags.DEFINE_string('data_dir', 'caltech',
                            """Path to the Caltech101 data directory.""")
@@ -69,7 +68,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     # LeNet-5 like Model
     model = ConvNet()
-    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS, eval_batch=EVAL_BATCH_SIZE)
+    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS, eval_batch=BATCH_SIZE)
     model.add_conv_layer(filter=[5, 5], depth=32, strides=[1, 1, 1, 1], activation='relu')
     model.add_pool('max', kernel_size=[1, 2, 2, 1], strides=[1, 2, 2, 1])
     model.add_conv_layer(filter=[5, 5], depth=64, strides=[1, 1, 1, 1], activation='relu')
@@ -77,10 +76,10 @@ def main(argv=None):  # pylint: disable=unused-argument
     model.add_fully_connected(n_units=512, activation='relu')
     model.add_dropout(0.5)
     model.add_fully_connected(n_units=NUM_LABELS,activation='relu')
-    model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=5e-5)
+    model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=1e-3)
     model.set_optimizer('Adam')
     model.init()
-    model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY,0.001)
+    model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY, 0.001)
 
 
 if __name__ == '__main__':

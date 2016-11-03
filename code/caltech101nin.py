@@ -9,7 +9,6 @@ from convnet import *
 import tensorflow as tf
 import scipy.io as sio
 
-DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
 DATA_DIRECTORY = 'caltech'
 IMAGE_SIZE = 32
 NUM_CHANNELS = 3
@@ -20,7 +19,6 @@ TEST_SIZE = 1144
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 50
 NUM_EPOCHS = 60
-EVAL_BATCH_SIZE = 104 # set this number to meet 1144/104 = 11
 EVAL_FREQUENCY = 160  # Number of steps between evaluations.
 
 
@@ -66,7 +64,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     # Network in Network
     model = ConvNet()
-    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS, eval_batch=EVAL_BATCH_SIZE)
+    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS, eval_batch=BATCH_SIZE)
     model.add_conv_layer(filter=[5, 5], depth=192, strides=[1, 1, 1, 1], activation='relu')
     model.add_conv_layer(filter=[1, 1], depth=160, strides=[1, 1, 1, 1], activation='relu')
     model.add_conv_layer(filter=[1, 1], depth=96, strides=[1, 1, 1, 1], activation='relu')
@@ -85,7 +83,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=0)
     model.set_optimizer('Adam')
     model.init()
-    model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY,0.001)
+    model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY, 0.001)
 
 
 if __name__ == '__main__':
