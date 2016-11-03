@@ -80,7 +80,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     model.add_conv_layer(filter=[1, 1], depth=NUM_LABELS, strides=[1, 1, 1, 1], activation='relu')
     model.add_pool('avg', kernel_size=[1, 8, 8, 1], strides=[1, 8, 8, 1])
     model.add_flatten()
-    model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=0)
+    model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=5e-4)
     model.set_optimizer('Adam')
     model.init()
     model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY, 0.001)
