@@ -19,16 +19,16 @@ NUM_LABELS = 102 # 101 categories with a background
 TRAIN_SIZE = 8000
 TEST_SIZE = 1144
 SEED = 66478  # Set to None for random seed.
-BATCH_SIZE = 50
+BATCH_SIZE = 100
 NUM_EPOCHS = 60
 # EVAL_BATCH_SIZE = 104
-EVAL_FREQUENCY = 160  # Number of steps between evaluations.
+EVAL_FREQUENCY = 80  # Number of steps between evaluations.
 
 
 FLAGS = tf.app.flags.FLAGS
 
 # Basic model parameters.
-tf.app.flags.DEFINE_integer('batch_size', 50,
+tf.app.flags.DEFINE_integer('batch_size', 100,
                             """Number of images to process in a batch.""")
 tf.app.flags.DEFINE_string('data_dir', 'caltech',
                            """Path to the Caltech101 data directory.""")

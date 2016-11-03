@@ -17,15 +17,15 @@ NUM_LABELS = 102 # 101 categories with a background
 TRAIN_SIZE = 8000
 TEST_SIZE = 1144
 SEED = 66478  # Set to None for random seed.
-BATCH_SIZE = 50
+BATCH_SIZE = 100
 NUM_EPOCHS = 60
-EVAL_FREQUENCY = 160  # Number of steps between evaluations.
+EVAL_FREQUENCY = 80  # Number of steps between evaluations.
 
 
 FLAGS = tf.app.flags.FLAGS
 
 # Basic model parameters.
-tf.app.flags.DEFINE_integer('batch_size', 50,
+tf.app.flags.DEFINE_integer('batch_size', 100,
                             """Number of images to process in a batch.""")
 tf.app.flags.DEFINE_string('data_dir', 'caltech',
                            """Path to the Caltech101 data directory.""")
@@ -73,14 +73,14 @@ def main(argv=None):  # pylint: disable=unused-argument
     model.add_conv_layer(filter=[5, 5], depth=192, strides=[1, 1, 1, 1], activation='relu')
     model.add_conv_layer(filter=[1, 1], depth=192, strides=[1, 1, 1, 1], activation='relu')
     model.add_conv_layer(filter=[1, 1], depth=192, strides=[1, 1, 1, 1], activation='relu')
-    model.add_pool('avg', kernel_size=[1, 3, 3, 1], strides=[1, 2, 2, 1])
+    model.add_pool('max', kernel_size=[1, 3, 3, 1], strides=[1, 2, 2, 1])
     model.add_dropout(0.5)
     model.add_conv_layer(filter=[3, 3], depth=192, strides=[1, 1, 1, 1], activation='relu')
     model.add_conv_layer(filter=[1, 1], depth=192, strides=[1, 1, 1, 1], activation='relu')
     model.add_conv_layer(filter=[1, 1], depth=NUM_LABELS, strides=[1, 1, 1, 1], activation='relu')
     model.add_pool('avg', kernel_size=[1, 8, 8, 1], strides=[1, 8, 8, 1])
     model.add_flatten()
-    model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=5e-4)
+    model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=0)
     model.set_optimizer('Adam')
     model.init()
     model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY, 0.001)
