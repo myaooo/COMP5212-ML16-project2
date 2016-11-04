@@ -11,8 +11,8 @@ echo "caltech101nin.py done"
 echo "running caltech101lenet.py"
 python3 caltech101lenet.py
 echo "caltech101lenet.py done"
-echo "running cifar10.py"
-python3 cifar10.py
+# echo "running cifar10.py"
+# python3 cifar10.py
 # echo "cifar10.py done"
 
 deactivate
