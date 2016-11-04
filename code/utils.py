@@ -31,10 +31,21 @@ def whitening(data):
     # whiten the data:
     # divide by the eigenvalues (which are square roots of the singular values)
     Xwhite = Xrot / np.sqrt(S + 1e-6)
+    
+    return Xwhite
 
-    # TestWhite = test_data - np.mean(test_data, axis=0)
-    # TestWhite = np.dot(TestWhite, U)
-    # TestWhite = TestWhite / np.sqrt(S+1e-5)
+def ZCAwhitening(data):
+    # Assume input data matrix data of size [N x D]
+    X = data
+    X -= np.mean(X, axis = 0) # zero-center the data (important)
+    cov = np.dot(X.T, X) / X.shape[0] # get the data covariance matrix
+
+    U,S,_ = np.linalg.svd(cov)
+    d = np.sqrt(S + 1e-6)
+    UdU = np.dot(U/d,U)
+    # whiten the data:
+    # divide by the eigenvalues (which are square roots of the singular values)
+    Xwhite = np.dot(UdU,X)
     
     return Xwhite
 

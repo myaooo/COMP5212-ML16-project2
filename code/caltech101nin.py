@@ -20,7 +20,7 @@ TEST_SIZE = 1144
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 100
 NUM_EPOCHS = 100
-EVAL_FREQUENCY = 80  # Number of steps between evaluations.
+EVAL_FREQUENCY = int(TRAIN_SIZE/BATCH_SIZE)  # Number of steps between evaluations.
 
 
 FLAGS = tf.app.flags.FLAGS

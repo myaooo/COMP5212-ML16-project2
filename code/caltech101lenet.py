@@ -22,8 +22,7 @@ TEST_SIZE = 1144
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 100
 NUM_EPOCHS = 100
-# EVAL_BATCH_SIZE = 104
-EVAL_FREQUENCY = 80  # Number of steps between evaluations.
+EVAL_FREQUENCY = int(TRAIN_SIZE/BATCH_SIZE)  # Number of steps between evaluations.
 
 
 FLAGS = tf.app.flags.FLAGS
@@ -66,7 +65,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     test_data, test_labels = extract_data_and_label(eval_data=True)
     train_data = train_data.reshape(TRAIN_SIZE, IMAGE_SIZE* IMAGE_SIZE* NUM_CHANNELS)
     test_data = test_data.reshape(TEST_SIZE, IMAGE_SIZE* IMAGE_SIZE* NUM_CHANNELS)
-    data = whitening(np.vstack([train_data,test_data]))
+    data = ZCAwhitening(np.vstack([train_data,test_data]))
     train_data = data[:TRAIN_SIZE,:]
     test_data = data[TRAIN_SIZE:,:]
     train_data = train_data.reshape(TRAIN_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)
