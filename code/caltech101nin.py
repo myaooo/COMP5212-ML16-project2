@@ -30,6 +30,8 @@ tf.app.flags.DEFINE_integer('batch_size', 100,
 tf.app.flags.DEFINE_string('data_dir', 'caltech',
                            """Path to the Caltech101 data directory.""")
 
+adjust = 1.0/math.sqrt(IMAGE_SIZE*IMAGE_SIZE*NUM_CHANNELS)
+
 def whiten_image(image):
     stddev = np.std(image)
     adjust_stddev = max(stddev, adjust)
