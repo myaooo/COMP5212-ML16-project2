@@ -25,10 +25,9 @@ PIXEL_DEPTH = 255
 NUM_LABELS = 10
 TRAIN_SIZE = 50000
 TEST_SIZE = 10000
-SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 100
 NUM_EPOCHS = 50
-EVAL_BATCH_SIZE = 200
+EVAL_BATCH_SIZE = 100
 EVAL_FREQUENCY = int(TRAIN_SIZE/BATCH_SIZE)  # Number of steps between evaluations.
 
 
@@ -64,7 +63,7 @@ def maybe_download_and_extract():
 def extract_data_and_label(eval_data = False):
     """Extract the images into a 4D tensor [image index, y, x, channels].
 
-    Values are rescaled from [0, 255] down to [-0.5, 0.5].
+    Values are normalized
     """
     data_list = []
     label_list = []

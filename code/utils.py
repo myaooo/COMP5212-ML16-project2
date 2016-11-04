@@ -41,7 +41,8 @@ def ZCAwhitening(data):
     cov = np.dot(X.T, X) / X.shape[0] # get the data covariance matrix
 
     U,S,_ = np.linalg.svd(cov)
-    d = np.sqrt(S + 1e-6)
+    en = math.sqrt(np.mean(S))
+    d = np.sqrt(S + 1e-6) / en
     UdU = np.dot(U/d,U.T)
     # whiten the data:
     # divide by the eigenvalues (which are square roots of the singular values)

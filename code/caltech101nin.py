@@ -17,8 +17,7 @@ PIXEL_DEPTH = 255
 NUM_LABELS = 102 # 101 categories with a background
 TRAIN_SIZE = 8000
 TEST_SIZE = 1144
-SEED = 66478  # Set to None for random seed.
-BATCH_SIZE = 100
+BATCH_SIZE = 50
 NUM_EPOCHS = 100
 EVAL_FREQUENCY = int(TRAIN_SIZE/BATCH_SIZE)  # Number of steps between evaluations.
 
@@ -34,7 +33,7 @@ tf.app.flags.DEFINE_string('data_dir', 'caltech',
 def extract_data_and_label(eval_data = False):
     """Extract the images into a 4D tensor [image index, y, x, channels].
 
-    Values are rescaled from [0, 255] down to [-0.5, 0.5].
+    Values are normalized
     """
     data_list = []
     label_list = []
@@ -94,7 +93,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     model.add_conv_layer(filter=[1, 1], depth=NUM_LABELS, strides=[1, 1, 1, 1], activation='relu')
     model.add_pool('avg', kernel_size=[1, 8, 8, 1], strides=[1, 8, 8, 1])
     model.add_flatten()
-    model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=0)
+    model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=5e-4)
     model.set_optimizer('Adam')
     model.init()
     model.train_with_eval(train_data, train_labels, test_data, test_labels, num_epochs, EVAL_FREQUENCY, 0.001)

@@ -58,7 +58,7 @@ The model is defined as [Figure 1][mnistfig], which consists of two convolution 
 
 [^softmax]: See TensorFlow API definition: http://www.tensorflow.org/versions/r0.11/api_docs/python/nn.html#sparse_softmax_cross_entropy_with_logits
 
-To avoid over fitting, a regularized term with coefficient $0.0005$ is applied on **each batch**. 
+To avoid over fitting, a regularized term with coefficient $0.0005$ is applied. 
 Total training epoch is 20, with training batch size of 100. Total training and evaluating time is 2077s.
 
 Detailed model definition and training parameters can be seen at `code/mnist.py`. 
@@ -86,7 +86,7 @@ Though the test accuracy stops growing, the test loss and train loss keep decrea
 
 The LeNet-5 model used to train CIFAR-10 has the same network parameters as in MNIST. See Figure 4. Tht model is trained through 50 epochs, with batch size of 100. Total training and evaluating time is 6788s.
 
-Detailed model definition and training parameters can be seen at `code/mnist.py`. 
+Detailed model definition and training parameters can be seen at `code/cifar.py`. 
 
 ### Results
 
@@ -114,7 +114,7 @@ If we want to get a better result, we should tune a higher regularized term para
 
 ![LeNet Model Definition for Caltech101](fig/caltech101lenet.png)
 
-The LeNet-5 model used to train Caltech101 has the same network parameters as in MNIST and CIFAR-10. See Figure 7. Tht model is trained through 60 epochs, with batch size of 50. The regularized parameter for each batch is 1e-3. Total training and evaluating time is 6788s.
+The LeNet-5 model used to train Caltech101 has the same network parameters as in MNIST and CIFAR-10. See Figure 7. The model is trained through 100 epochs, with batch size of 100. The regularized parameter for each batch is 1e-3. Total training and evaluating time is 1788s.
 
 ### Results
 
