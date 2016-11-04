@@ -18,7 +18,7 @@ TRAIN_SIZE = 8000
 TEST_SIZE = 1144
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 100
-NUM_EPOCHS = 60
+NUM_EPOCHS = 80
 EVAL_FREQUENCY = 80  # Number of steps between evaluations.
 
 
@@ -65,18 +65,18 @@ def main(argv=None):  # pylint: disable=unused-argument
     # Network in Network
     model = ConvNet()
     model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS, eval_batch=BATCH_SIZE)
-    model.add_conv_layer(filter=[5, 5], depth=192, strides=[1, 1, 1, 1], activation='relu')
-    model.add_conv_layer(filter=[1, 1], depth=160, strides=[1, 1, 1, 1], activation='relu')
-    model.add_conv_layer(filter=[1, 1], depth=96, strides=[1, 1, 1, 1], activation='relu')
-    model.add_pool('max', kernel_size=[1, 3, 3, 1], strides=[1, 2, 2, 1])
-    model.add_dropout(0.5)
-    model.add_conv_layer(filter=[5, 5], depth=192, strides=[1, 1, 1, 1], activation='relu')
-    model.add_conv_layer(filter=[1, 1], depth=192, strides=[1, 1, 1, 1], activation='relu')
+    model.add_conv_layer(filter=[5, 5], depth=288, strides=[1, 1, 1, 1], activation='relu')
+    model.add_conv_layer(filter=[1, 1], depth=256, strides=[1, 1, 1, 1], activation='relu')
     model.add_conv_layer(filter=[1, 1], depth=192, strides=[1, 1, 1, 1], activation='relu')
     model.add_pool('max', kernel_size=[1, 3, 3, 1], strides=[1, 2, 2, 1])
     model.add_dropout(0.5)
-    model.add_conv_layer(filter=[3, 3], depth=192, strides=[1, 1, 1, 1], activation='relu')
-    model.add_conv_layer(filter=[1, 1], depth=192, strides=[1, 1, 1, 1], activation='relu')
+    model.add_conv_layer(filter=[5, 5], depth=288, strides=[1, 1, 1, 1], activation='relu')
+    model.add_conv_layer(filter=[1, 1], depth=288, strides=[1, 1, 1, 1], activation='relu')
+    model.add_conv_layer(filter=[1, 1], depth=288, strides=[1, 1, 1, 1], activation='relu')
+    model.add_pool('max', kernel_size=[1, 3, 3, 1], strides=[1, 2, 2, 1])
+    model.add_dropout(0.5)
+    model.add_conv_layer(filter=[3, 3], depth=288, strides=[1, 1, 1, 1], activation='relu')
+    model.add_conv_layer(filter=[1, 1], depth=288, strides=[1, 1, 1, 1], activation='relu')
     model.add_conv_layer(filter=[1, 1], depth=NUM_LABELS, strides=[1, 1, 1, 1], activation='relu')
     model.add_pool('avg', kernel_size=[1, 8, 8, 1], strides=[1, 8, 8, 1])
     model.add_flatten()
