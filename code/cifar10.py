@@ -101,13 +101,25 @@ def error_rate(predictions, labels):
       np.sum(np.argmax(predictions, 1) == labels) /
       predictions.shape[0])
 
+def CompleteZCAwhitening(train_data, test_data):
+    train_data = train_data.reshape(TRAIN_SIZE, IMAGE_SIZE* IMAGE_SIZE* NUM_CHANNELS)
+    test_data = test_data.reshape(TEST_SIZE, IMAGE_SIZE* IMAGE_SIZE* NUM_CHANNELS)
+    data = ZCAwhitening(np.vstack([train_data,test_data]))
+    train_data = data[:TRAIN_SIZE,:]
+    test_data = data[TRAIN_SIZE:,:]
+    train_data = train_data.reshape(TRAIN_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)
+    test_data = test_data.reshape(TEST_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)
+    
+    return train_data, test_data
 
 def main(argv=None):  # pylint: disable=unused-argument
 
     maybe_download_and_extract()
     # Extract it into numpy arrays.
+     # Extract it into numpy arrays.
     train_data, train_labels = extract_data_and_label(eval_data=False)
     test_data, test_labels = extract_data_and_label(eval_data=True)
+    train_data, test_data = CompleteZCAwhitening(train_data,test_data)
 
     num_epochs = NUM_EPOCHS
 
