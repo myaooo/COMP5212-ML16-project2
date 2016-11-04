@@ -10,6 +10,7 @@ import numpy as np
 from convnet import *
 import tensorflow as tf
 import scipy.io as sio
+from utils import *
 
 DATA_DIRECTORY = 'caltech'
 IMAGE_SIZE = 32
@@ -33,14 +34,6 @@ tf.app.flags.DEFINE_integer('batch_size', 100,
 tf.app.flags.DEFINE_string('data_dir', 'caltech',
                            """Path to the Caltech101 data directory.""")
 
-adjust = 1.0/math.sqrt(IMAGE_SIZE*IMAGE_SIZE*NUM_CHANNELS)
-
-def whiten_image(image):
-    stddev = np.std(image)
-    adjust_stddev = max(stddev, adjust)
-    mean = np.mean(image)
-    return (image -mean)/adjust_stddev
-
 def extract_data_and_label(eval_data = False):
     """Extract the images into a 4D tensor [image index, y, x, channels].
 
@@ -59,11 +52,11 @@ def extract_data_and_label(eval_data = False):
     # parsing data
     data = dict['data']
     data = (data - (PIXEL_DEPTH / 2.0)) / PIXEL_DEPTH
+    data = normalize_data(data)
     data = data.reshape(num_images, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)
     labels = dict['labels']
     labels = labels.reshape(num_images)
-    for i in range(0,num_images):
-        data[i,:,:,:] = whiten_image(data[i,:,:,:])
+
     return data, labels
 
 def main(argv=None):  # pylint: disable=unused-argument
@@ -71,6 +64,11 @@ def main(argv=None):  # pylint: disable=unused-argument
     # Extract it into numpy arrays.
     train_data, train_labels = extract_data_and_label(eval_data=False)
     test_data, test_labels = extract_data_and_label(eval_data=True)
+    train_data = train_data.reshape(TRAIN_SIZE, IMAGE_SIZE* IMAGE_SIZE* NUM_CHANNELS)
+    test_data = test_data.reshape(TEST_SIZE, IMAGE_SIZE* IMAGE_SIZE* NUM_CHANNELS)
+    train_data, test_data = whitening(train_data,test_data)
+    train_data = train_data.reshape(TRAIN_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)
+    test_data = test_data.reshape(TEST_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)
 
     num_epochs = NUM_EPOCHS
 
