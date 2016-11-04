@@ -20,7 +20,7 @@ def normalize_data(data):
     X /= np.std(X, axis = 0)
     return X
 
-def whitening(data, test_data):
+def whitening(data):
     # Assume input data matrix data of size [N x D]
     X = data
     X -= np.mean(X, axis = 0) # zero-center the data (important)
@@ -30,11 +30,11 @@ def whitening(data, test_data):
     Xrot = np.dot(X, U) # decorrelate the data
     # whiten the data:
     # divide by the eigenvalues (which are square roots of the singular values)
-    Xwhite = Xrot / np.sqrt(S + 1e-5)
+    Xwhite = Xrot / np.sqrt(S + 1e-6)
 
-    TestWhite = test_data - np.mean(test_data, axis=0)
-    TestWhite = np.dot(TestWhite, U)
-    TestWhite = TestWhite / np.sqrt(S+1e-5)
+    # TestWhite = test_data - np.mean(test_data, axis=0)
+    # TestWhite = np.dot(TestWhite, U)
+    # TestWhite = TestWhite / np.sqrt(S+1e-5)
     
-    return Xwhite, TestWhite
+    return Xwhite
 

@@ -66,7 +66,9 @@ def main(argv=None):  # pylint: disable=unused-argument
     test_data, test_labels = extract_data_and_label(eval_data=True)
     train_data = train_data.reshape(TRAIN_SIZE, IMAGE_SIZE* IMAGE_SIZE* NUM_CHANNELS)
     test_data = test_data.reshape(TEST_SIZE, IMAGE_SIZE* IMAGE_SIZE* NUM_CHANNELS)
-    train_data, test_data = whitening(train_data,test_data)
+    data = whitening(np.vstack([train_data,test_data]))
+    train_data = data[:TRAIN_SIZE,:]
+    test_data = data[TRAIN_SIZE:,:]
     train_data = train_data.reshape(TRAIN_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)
     test_data = test_data.reshape(TEST_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)
 
