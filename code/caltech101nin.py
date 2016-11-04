@@ -30,6 +30,12 @@ tf.app.flags.DEFINE_integer('batch_size', 100,
 tf.app.flags.DEFINE_string('data_dir', 'caltech',
                            """Path to the Caltech101 data directory.""")
 
+def whiten_image(image):
+    stddev = np.std(image)
+    adjust_stddev = max(stddev, adjust)
+    mean = np.mean(image)
+    return (image -mean)/adjust_stddev
+
 def extract_data_and_label(eval_data = False):
     """Extract the images into a 4D tensor [image index, y, x, channels].
 
@@ -51,8 +57,8 @@ def extract_data_and_label(eval_data = False):
     data = data.reshape(num_images, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)
     labels = dict['labels']
     labels = labels.reshape(num_images)
-    # reorder dimensions from [num_channel,x,y] into [x,y,num_channel]
-    # data = data.transpose((0, 2, 3, 1))
+    for i in range(0,num_images):
+        data[i,:,:,:] = whiten_image(data[i,:,:,:])
     return data, labels
 
 def main(argv=None):  # pylint: disable=unused-argument

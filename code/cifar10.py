@@ -13,6 +13,7 @@ from six.moves import urllib
 from convnet import *
 import tensorflow as tf
 import tarfile
+import math
 
 DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
 WORK_DIRECTORY = 'cifar-10'
@@ -43,6 +44,13 @@ tf.app.flags.DEFINE_boolean('use_fp16', False,
 # Global constants describing the CIFAR-10 data set.
 # train_size = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
 # test_size = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
+adjust = 1.0/math.sqrt(IMAGE_SIZE*IMAGE_SIZE*NUM_CHANNELS)
+
+def whiten_image(image):
+    stddev = np.std(image)
+    adjust_stddev = max(stddev, adjust)
+    mean = np.mean(image)
+    return (image -mean)/adjust_stddev
 
 
 def maybe_download_and_extract():
@@ -92,6 +100,9 @@ def extract_data_and_label(eval_data = False):
     data = data.reshape(num_images, NUM_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)
     # reorder dimensions from [num_channel,x,y] into [x,y,num_channel]
     data = data.transpose((0, 2, 3, 1))
+    for i in range(0,num_images):
+        data[i,:,:,:] = whiten_image(data[i,:,:,:])
+    
     return data, labels
 
 
