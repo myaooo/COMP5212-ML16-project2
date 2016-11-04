@@ -45,7 +45,7 @@ def ZCAwhitening(data):
     UdU = np.dot(U/d,U)
     # whiten the data:
     # divide by the eigenvalues (which are square roots of the singular values)
-    Xwhite = np.dot(UdU,X)
+    Xwhite = np.dot(X,UdU)
     
     return Xwhite
 
