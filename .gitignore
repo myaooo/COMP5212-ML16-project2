@@ -9,5 +9,5 @@ remote_run.sh
 /code/output
 /code/tmp
 *.log
-/output_raw
+output_raw/*
 MING*
