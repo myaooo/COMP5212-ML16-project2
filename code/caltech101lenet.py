@@ -19,7 +19,7 @@ PIXEL_DEPTH = 255
 NUM_LABELS = 102 # 101 categories with a background
 TRAIN_SIZE = 8000
 TEST_SIZE = 1144
-BATCH_SIZE = 50
+BATCH_SIZE = 100
 NUM_EPOCHS = 100
 EVAL_FREQUENCY = int(TRAIN_SIZE/BATCH_SIZE)  # Number of steps between evaluations.
 
@@ -73,7 +73,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     # Extract it into numpy arrays.
     train_data, train_labels = extract_data_and_label(eval_data=False)
     test_data, test_labels = extract_data_and_label(eval_data=True)
-    train_data, test_data = CompleteZCAwhitening(train_data,test_data)
+    # train_data, test_data = CompleteZCAwhitening(train_data,test_data)
 
     num_epochs = NUM_EPOCHS
 

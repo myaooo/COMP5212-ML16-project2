@@ -71,7 +71,7 @@ def main(argv=None):  # pylint: disable=unused-argument
      # Extract it into numpy arrays.
     train_data, train_labels = extract_data_and_label(eval_data=False)
     test_data, test_labels = extract_data_and_label(eval_data=True)
-    train_data, test_data = CompleteZCAwhitening(train_data,test_data)
+    # train_data, test_data = CompleteZCAwhitening(train_data,test_data)
 
     num_epochs = NUM_EPOCHS
 

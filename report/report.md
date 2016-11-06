@@ -84,9 +84,9 @@ Though the test accuracy stops growing, the test loss and train loss keep decrea
 
 ![LeNet Model Definition for CIFAR-10](fig/cifar10.png)
 
-The LeNet-5 model used to train CIFAR-10 has the same network parameters as in MNIST. See Figure 4. Tht model is trained through 50 epochs, with batch size of 100. Total training and evaluating time is 6788s.
+The LeNet-5 model used to train CIFAR-10 has the same network parameters as in MNIST. See Figure 4. Tht model is trained through 50 epochs, with batch size of 100. Total training and evaluating time is 6847s.
 
-Detailed model definition and training parameters can be seen at `code/cifar.py`. 
+Detailed model definition and training parameters can be seen at `code/cifar10.py`. 
 
 ### Results
 
@@ -114,9 +114,19 @@ If we want to get a better result, we should tune a higher regularized term para
 
 ![LeNet Model Definition for Caltech101](fig/caltech101lenet.png)
 
-The LeNet-5 model used to train Caltech101 has the same network parameters as in MNIST and CIFAR-10. See Figure 7. The model is trained through 100 epochs, with batch size of 100. The regularized parameter for each batch is 1e-3. Total training and evaluating time is 1788s.
+The LeNet-5 model used to train Caltech101 has the same network parameters as in MNIST and CIFAR-10. See Figure 7. The model is trained through 60 epochs, with batch size of 100. The regularized parameter is 1e-3. Total training and evaluating time is 1266s.
+
+Detailed model definition and training parameters can be seen at `code/caltech101lenet.py`. 
 
 ### Results
+
+![Loss Curve for LeNet on Caltech101](fig/callenetloss.png){width=4in}
+
+![Accuracy Curve for LeNet on Caltech101](fig/callenetacc.png){width=4in}
+
+The resulting training accuracy and test accuracy are 99.14% and 55.86% respectively, with training loss of 0.800 and test loss of 3.672.
+
+Loss curves and accuracy curves over time for the training data and test data can be seen at Figure 8 and Figure 9.
 
 ## Network in Network Model
 
@@ -130,8 +140,33 @@ The Global Average Pooling is modeled as a large average pooling layer.
 The NIN model consists 3 mlpconv layers. Between each mlpconv layers, a pooling (max or average) layer and 50% dropout is applied. Specific parameters for each layer is defined as in Figure 10.
 
 The optimization objective function is chosen as softmax cross entropy without regularized terms.
-An adaptive moment (Adam) algorithm is used to optimize the loss. Total training consists of 60 epochs, and consumes 7000s.
+An adaptive moment (Adam) algorithm is used to optimize the loss. Total training consists of 60 epochs, with batch size 100 and consumes 10884s.
+
+Detailed model definition and training parameters can be seen at `code/caltech101nin.py`. 
 
 ### Results
 
+![Loss Curve for NIN on Caltech101](fig/calninloss.png){width=4in}
+
+![Accuracy Curve for NIN on Caltech101](fig/calninacc.png){width=4in}
+
+The resulting training accuracy and test accuracy are 92.96% and 53.76% respectively, with training loss of 0.537 and test loss of 3.381.
+
+Loss curves and accuracy curves over time for the training data and test data can be seen at Figure 11 and Figure 12.
+
 # Conclusion
+
+From the above two experiments on LeNet and NIN, we can see that NIN with global average pooling layer has a better performance on preventing over fitting. With more parameters to train, NIN model needs a longer training time.
+
+Compares to LeNet, NIN is a more complicated model and should have a better performance when model parameters are well set. 
+
+However, in this project, NIN has not performed better than LeNet (Better mean loss but worse accuracy).
+
+I also compares my results with Guangneng Hu. Here is the some reasons that I think may lead to such results:
+
+1. Pool parameter settings and unsuitable optimization algorithm. A better learning rate updating scheme may achieve a better results.
+
+2. Pool data preprocessing. I have tried ZCA/PCA whitening for data pre-processing. However, the results does not come out to be good. Due to time limits, I don't have time for further debugging.
+
+3. The training epochs is not large enough. The Caltech 101 models run only 60 epochs. A longer epochs may converge better.
+
