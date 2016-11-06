@@ -9,5 +9,7 @@ remote_run.sh
 /code/output
 /code/tmp
 *.log
-output_raw/*
-MING*
+/output_raw
+*.zip
+.vscode
+/output
