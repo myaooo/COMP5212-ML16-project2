@@ -6,7 +6,7 @@
 
 import tensorflow as tf
 import numpy as np
-from convnet import *
+from convnet.convnet import ConvNet
 import gzip
 import os
 import sys
@@ -80,19 +80,24 @@ def main(argv=None):  # pylint: disable=unused-argument
     num_epochs = NUM_EPOCHS
 
     # LeNet-5 like Model
-    model = ConvNet()
-    model.input_data((BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), num_label=NUM_LABELS, eval_batch=EVAL_BATCH_SIZE)
-    model.add_conv_layer(filter=[5, 5], depth=32, strides=[1, 1, 1, 1], activation='relu')
-    model.add_pool('max', kernel_size=[1, 2, 2, 1], strides=[1, 2, 2, 1])
-    model.add_conv_layer(filter=[5, 5], depth=64, strides=[1, 1, 1, 1], activation='relu')
-    model.add_pool('max', kernel_size=[1, 2, 2, 1], strides=[1, 2, 2, 1])
-    model.add_fully_connected(n_units=512, activation='relu')
-    model.add_dropout(0.5)
-    model.add_fully_connected(n_units=NUM_LABELS,activation='relu')
-    model.set_loss(tf.nn.sparse_softmax_cross_entropy_with_logits, reg=5e-4)
+    model = ConvNet('mnist')
+    model.push_input_layer(dshape=[None, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS])
+    model.push_conv_layer(filter_size=[5, 5], out_channels=32, strides=[1, 1], activation='relu')
+    model.push_pool_layer('max', kernel_size=[1, 2, 2, 1], strides=[2, 2])
+    model.push_conv_layer(filter_size=[5, 5], out_channels=64, strides=[1, 1], activation='relu')
+    model.push_pool_layer('max', kernel_size=[1, 2, 2, 1], strides=[2, 2])
+    model.push_flatten_layer()
+    model.push_fully_connected_layer(out_channels=512, activation='relu')
+    model.push_dropout_layer(0.5)
+    model.push_fully_connected_layer(out_channels=NUM_LABELS, activation='linear')
+
+    model.set_loss('sparse_softmax')
+    model.set_regularizer('l2', 5e-4)
+    model.set_learning_rate(0.001)
     model.set_optimizer('Adam')
-    model.init()
-    model.train_with_eval(train_data,train_labels,test_data,test_labels,num_epochs,EVAL_FREQUENCY,0.001)
+    model.set_data(train_data[:10000, ...], train_labels[:10000,...], test_data, test_labels)
+    model.compile()
+    model.train(BATCH_SIZE, 50, EVAL_FREQUENCY)
 
 
 if __name__ == '__main__':
