@@ -14,3 +14,4 @@ remote_run.sh
 .vscode
 /output
 *__pycache__*
+*.local
